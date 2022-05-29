@@ -1,30 +1,45 @@
 package com.integrationmq;
 
-import com.integrationmq.domain.WorkUnit;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.integrationmq.domain.Transaction;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class WorkInbound {
 
-    @Autowired
-    private RabbitConfig rabbitConfig;
-
+    private final RabbitConfig rabbitConfig;
     @Bean
     public IntegrationFlow inboundFlow() {
         return IntegrationFlows.from(
                 Amqp.inboundAdapter(rabbitConfig.workListenerContainer()))
-                .transform(Transformers.fromJson(WorkUnit.class))
+                .transform(Transformers.fromJson(Transaction.class))
+                .channel(requests())
                 .log()
-                .filter("(headers['x-death'] != null) ? headers['x-death'][0].count <= 3: true", f -> f.discardChannel("nullChannel"))
-                .handle("workHandler", "process")
                 .get();
     }
+
+
+    @Bean
+    public QueueChannel requests() {
+        return new QueueChannel();
+    }
+
+    /*@Bean
+    public IntegrationFlow inboundFlow(ConnectionFactory connectionFactory) {
+        return IntegrationFlows.from(
+                Amqp.inboundAdapter(connectionFactory, "requests"))
+                .transform(Transformers.fromJson(Transaction.class))
+                .channel(requests())
+                .log()
+                .get();
+    }*/
 
 }

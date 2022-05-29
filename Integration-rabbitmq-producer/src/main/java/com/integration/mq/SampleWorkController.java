@@ -1,21 +1,20 @@
 package com.integration.mq;
 
-import com.integration.mq.domain.WorkUnit;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import com.integration.mq.domain.Transaction;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
+@RequiredArgsConstructor
 public class SampleWorkController {
 
-    @Autowired
-    private WorkUnitGateway workUnitGateway;
+    private final WorkUnitGateway workUnitGateway;
 
-    @RequestMapping("/generateWork")
-    @ResponseBody
-    public WorkUnit generateWork(WorkUnit workUnit) {
-        workUnitGateway.generate(workUnit);
-        return workUnit;
+    @PostMapping("/transaction")
+    public Transaction generateWork(@RequestBody Transaction transaction) {
+        workUnitGateway.generate(transaction);
+        return transaction;
     }
 }
